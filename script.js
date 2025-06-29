@@ -3,18 +3,64 @@ let gameRunning = false; // Keeps track of whether game is active or not
 let dropMaker; // Will store our timer that creates drops regularly
 let timerInterval; // Timer interval reference
 let timeLeft = 30; // Default game time
+let dropInterval = 700; // ms, default for normal
+let dropDuration = 2.8; // seconds, default for normal
+let cleanRatio = 0.7;   // default for normal
+let selectedDifficulty = null;
+
+// Difficulty settings
+const difficultySettings = {
+  easy:   { dropInterval: 900, dropDuration: 3.5, cleanRatio: 0.85, time: 35 },
+  normal: { dropInterval: 700, dropDuration: 2.8, cleanRatio: 0.7,  time: 30 },
+  hard:   { dropInterval: 450, dropDuration: 2.1, cleanRatio: 0.55, time: 25 }
+};
+
+// Difficulty button logic
+// Move all logic outside DOMContentLoaded and ensure script is loaded at the end of <body>
+const diffBtns = Array.from(document.querySelectorAll('.difficulty-btn'));
+const startBtn = document.getElementById("start-btn");
+
+// Hide start button initially
+startBtn.classList.remove('show');
+startBtn.style.display = 'none';
+
+// Attach event listeners immediately
+diffBtns.forEach(btn => {
+  btn.disabled = false;
+  btn.addEventListener('click', function() {
+    diffBtns.forEach(b => b.classList.remove('selected'));
+    this.classList.add('selected');
+    selectedDifficulty = this.dataset.difficulty;
+    startBtn.classList.add('show');
+    startBtn.style.display = 'inline-block';
+    startBtn.disabled = false;
+  });
+});
 
 // Wait for button click to start the game
-document.getElementById("start-btn").addEventListener("click", startGame);
+startBtn.addEventListener("click", startGame);
 
 function startGame() {
   // Prevent multiple games from running at once
   if (gameRunning) return;
+  if (!selectedDifficulty) return; // Don't start if no difficulty
+
+  // Set difficulty parameters
+  const settings = difficultySettings[selectedDifficulty];
+  dropInterval = settings.dropInterval;
+  dropDuration = settings.dropDuration;
+  cleanRatio = settings.cleanRatio;
+  timeLeft = settings.time;
 
   gameRunning = true;
-  timeLeft = 30;
   document.getElementById("time").textContent = timeLeft;
   document.getElementById("score").textContent = 0;
+
+  // Disable difficulty buttons during game
+  diffBtns.forEach(b => b.disabled = true);
+  startBtn.disabled = true;
+  startBtn.classList.remove('show');
+  startBtn.style.display = 'none';
 
   // Start timer
   timerInterval = setInterval(() => {
@@ -25,16 +71,16 @@ function startGame() {
     }
   }, 1000);
 
-  // Create new drops every 500 milliseconds (faster)
-  dropMaker = setInterval(createDrop, 500);
+  // Create new drops at the selected interval
+  dropMaker = setInterval(createDrop, dropInterval);
 }
 
 function createDrop() {
   // Create a new div element that will be our water drop
   const drop = document.createElement("div");
 
-  // Randomly decide if this is a clean or polluted drop
-  const isClean = Math.random() < 0.7; // 70% clean, 30% polluted
+  // Use cleanRatio for current difficulty
+  const isClean = Math.random() < cleanRatio; // 70% clean, 30% polluted
   drop.className = isClean ? "water-drop" : "water-drop bad-drop";
 
   // Set all drops to the same size
@@ -47,8 +93,8 @@ function createDrop() {
   const xPosition = Math.random() * (gameWidth - size);
   drop.style.left = xPosition + "px";
 
-  // Make drops fall for 2.8 seconds (faster)
-  drop.style.animationDuration = "2.8s";
+  // Use dropDuration for current difficulty
+  drop.style.animationDuration = dropDuration + "s";
 
   // Add the new drop to the game screen
   document.getElementById("game-container").appendChild(drop);
@@ -99,15 +145,26 @@ function endGame() {
   document.querySelectorAll('.water-drop, .bad-drop').forEach(d => d.remove());
   // Show final score overlay
   showFinalScore();
+  // Re-enable difficulty buttons after game ends
+  diffBtns.forEach(b => b.disabled = false);
+  startBtn.disabled = !selectedDifficulty;
 }
 
 function showFinalScore() {
   let overlay = document.createElement('div');
   overlay.className = 'final-score-overlay';
   let score = parseInt(document.getElementById("score").textContent, 10);
-  let win = score >= 10;
+
+  // Determine win threshold based on difficulty
+  let winThreshold = 10;
+  if (selectedDifficulty === "normal") winThreshold = 13;
+  if (selectedDifficulty === "hard") winThreshold = 16;
+
+  let win = score >= winThreshold;
   let message = win ? "🎉 You Win! 🎉" : "Game Over";
-  let subMessage = win ? "Congratulations! You scored at least 10!" : "Try again to reach 10 points.";
+  let subMessage = win
+    ? `Congratulations! You scored at least ${winThreshold}!`
+    : `Try again to reach ${winThreshold} points.`;
   overlay.innerHTML = `<div class="final-score-content">${message}<br><span class='final-score-number'>Your Score: ${score}</span><br><span style='font-size:1.2rem;'>${subMessage}</span><br><button id='restart-btn'>Play Again</button></div>`;
   document.body.appendChild(overlay);
   setTimeout(() => overlay.classList.add('show'), 10);
@@ -115,7 +172,14 @@ function showFinalScore() {
   document.getElementById('restart-btn').onclick = function() {
     overlay.remove();
     removeConfetti();
-    startGame();
+    // Reset difficulty selection state
+    diffBtns.forEach(b => b.disabled = false);
+    startBtn.disabled = !selectedDifficulty;
+    document.getElementById("score").textContent = 0;
+    document.getElementById("time").textContent = difficultySettings[selectedDifficulty].time;
+    // Show start button again for next game
+    startBtn.classList.add('show');
+    startBtn.style.display = 'inline-block';
   };
 }
 
@@ -130,6 +194,10 @@ function showConfetti() {
     document.body.appendChild(conf);
   }
 }
+function removeConfetti() {
+  document.querySelectorAll('.confetti').forEach(c => c.remove());
+}
+
 function removeConfetti() {
   document.querySelectorAll('.confetti').forEach(c => c.remove());
 }
