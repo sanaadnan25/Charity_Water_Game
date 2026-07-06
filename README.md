@@ -1,46 +1,24 @@
-# charity: water – Water Drop Game Starter
-In this game, users collect as many falling water drops as possible. Users tap to collect drops before they hit the ground. You’ll be working from a partially built version of the game. Some functionality is already provided, and your job is to complete the rest.
+# Water Drop Game
 
-## What’s Already Done
+A browser-based reflex game built for charity: water — players click falling water drops to score points before time runs out, with three difficulty levels and "bad drop" hazards that cost points.
 
-The starter files already include:
+**[Live demo](https://sanaadnan25.github.io/06-CompletedCharityWater/)**
 
-- A **heading and tagline**
-- A **start button**
-- A **game container** where water drops appear
-- A **placeholder timer and score** (not functional yet)
-- A **logo image** from charity: water
-- Working code that:
-  - Starts the game when the start button is clicked
-  - Makes water drops fall randomly at different sizes
+## What it does
 
-## What You Need to Add
+- Choose Easy, Normal, or Hard difficulty, each with its own drop speed, spawn rate, and time limit
+- Click falling "clean" drops (+1 point) while avoiding "bad" drops (–1 point), visually distinguished from each other
+- Live score and countdown timer, with floating +1/–1 feedback on each click
+- Win threshold scales with difficulty (10/13/16 points); win triggers a confetti animation and celebratory message, loss shows an encouraging retry message
+- Fully replayable — "Play Again" resets state without a page reload
+- Responsive layout styled to charity: water's brand guidelines
 
-Here’s what you're required to implement to bring the game to life:
+## How it works
 
-### Game Functionality
+Vanilla JS manages game state across difficulty settings, drop spawning (randomized position/size, weighted clean-vs-bad ratio per difficulty), scoring, and a countdown timer. End-of-game logic determines win/loss against a difficulty-scaled threshold and renders a dynamic overlay with a restart handler.
 
-- **Update the score**
-  - +1 point for each drop clicked  
+**Stack:** HTML/CSS/JS
 
-- **Add a 30-second timer**
-  - When the timer reaches 0, the game ends  
+## Notes
 
-- **Display a message when the game ends**
-  - If the player scores **20 or more points**, show a **winning** message  
-  - If the player scores **less than 20 points**, show a **"try again"** message  
-  - Create one array of possible winning messages and one array of losing messages
-  - Depending on whether the user wins or loses, randomly pick and display a message from the appropriate array
-
-### Visual Styling
-
-- **Add charity: water branding**
-  
-  - Use the provided logo  
-  - Use the [charity: water brand guidelines](https://drive.google.com/file/d/1ct4zYRIwHAtxoNQoeaVwWYPdnruSC6sr/view) to stay on-brand with colors and styling
-  - Add styling rules to ensure your game layout adjusts well across different screen sizes
-
-
-These are the minimum requirements, but if you'd like an additional challenge go ahead and give the LevelUps a shot! For example, you can set up logic to make some of the drops "bad" drops that remove points if the user click them, complete with a different color to distinguish them from "good" drops. Have fun and make the game your own!
-
-If you have any questions or need any assistance with your code, reach out to the HelpHub or attend a Drop-In Hour. You got this!!
+Built from a charity: water coding challenge starter template. All core gameplay — difficulty system, timer, scoring, bad-drop mechanic, win/loss logic, confetti, and replay flow — was implemented on top of the provided base files.
